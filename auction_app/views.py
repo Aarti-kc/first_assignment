@@ -60,7 +60,7 @@ class add_product_save(generics.GenericAPIView):
         price=request.POST.get("price")
         about=request.POST.get("about")
         print(request.data)
-        new_pro=Products(product_name=pro_name,product_price=price,description=about)
+        #new_pro=Products(product_name=pro_name,product_price=price,description=about)
         print(new_pro)
         serialize_data=ProductsSerializer(data=request.data)
         if pro_name is None:

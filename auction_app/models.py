@@ -1,18 +1,12 @@
 from django.db import models
-
+from django.contrib.auth.models import AbstractUser
+from auctions import settings
 # Create your models here.
 
-class User(models.Model):
+class User(AbstractUser):
     id=models.AutoField(primary_key=True)
-    username=models.CharField(max_length=255,default="@",null=False)
-    name=models.CharField(max_length=255,default="")
-    email=models.CharField(max_length=255,default="",null=False)
-    password=models.CharField(max_length=255,default="",null=False)
-    gender=models.CharField(max_length=100,default="")
-
-    created_at=models.DateTimeField(auto_now_add=True)
-    updated_at=models.DateTimeField(auto_now_add=True)
-    objects=models.Manager()
+    username=models.CharField(max_length=255,null=False,default="",unique=True)
+    password=models.CharField(max_length=255,null=False,default="")
 
 
 
@@ -30,8 +24,9 @@ class Products(models.Model):
 
 class Bidding(models.Model):
     id=models.AutoField(primary_key=True)
+    user_id=models.ForeignKey(User,on_delete=models.CASCADE,default=1)
     product_id=models.ForeignKey(Products,on_delete=models.CASCADE,default=1)
-    new_price=models.CharField(max_length=100,null=False,default='0')
+    new_price=models.FloatField(max_length=100,null=False,default='0')
 
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now_add=True)
@@ -47,3 +42,14 @@ class Comments(models.Model):
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now_add=True)
     objects=models.Manager()
+
+
+class Watchlist(models.Model):
+    id=models.AutoField(primary_key=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    item = models.ManyToManyField(Products)
+
+    created_at=models.DateTimeField(auto_now_add=True)
+    updated_at=models.DateTimeField(auto_now_add=True)
+    objects=models.Manager()
+   

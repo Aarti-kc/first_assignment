@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     'auction_app',
     'rest_framework',
+    'user_login',
 ]
 
 MIDDLEWARE = [
@@ -139,3 +140,4 @@ MEDIA_URL = '/media/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'auction_app.User'

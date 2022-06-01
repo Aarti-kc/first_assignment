@@ -22,19 +22,46 @@ def index(request):
     context={
         'product':product,
         'watchlist_count':all_objects.values_list('item').count(),
+        'user':user,
     }
     return render(request,"index.html",context)
 
 class ProductSection:
+
+
+    def login_now(request):
+        return render(request,'login_user.html')
+
+    def login_user(request):
+        if request.method == "POST":
+            username = request.POST['username']
+            password = request.POST['password']
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('index')
+            else:
+                messages.success(request, ("There Was An Error Logging In, Try Again..."))	
+                return redirect('login_now')	
+
+
+        else:
+            return render(request, 'login_user.html', {})
+
+     
+    def logout_user(request):
+        logout(request)
+        messages.success(request, ("You Were Logged Out!"))
+        return redirect('index')
+
     
     def add_product(request):
         user=request.user
         all_objects=Watchlist.objects.filter(user=user.id)
         if user.is_authenticated:
-            return render(request,'add_product.html',{'watchlist_count':all_objects.values_list('item').count(),})
+            return render(request,'add_product.html',{'watchlist_count':all_objects.values_list('item').count(),'user':user.id})
         else:
-            messages.info(request,"You don't have access to this page!")
-            return redirect('/')
+            return HttpResponseRedirect('/login')
 
 
     def add_product_save(request):
@@ -52,52 +79,21 @@ class ProductSection:
                 messages.success(request, "New product has been Added!")
                 return HttpResponseRedirect("/add_product")
             except:
-                messages.error(request, "Something went worng:/")
+                messages.error(request, "Something went wrong:/")
                 return HttpResponseRedirect("/add_product")
-    """
-    class add_product_save(generics.GenericAPIView):
-        def get(self, request, *args, **kwargs):
-            all_pro=Products.objects.all()
-            serialize_data=ProductsSerializer(all_pro,many=True)
-            if all_pro is not None:
-                return Response(serialize_data.data,status=status.HTTP_200_OK)
-            else:
-                return Response({'error': ['Not Data Found.']},status=status.HTTP_404_NOT_FOUND)
-
-        def post(self, request, *args, **kwargs):
-            pro_name=request.POST.get("pro_name")
-            price=request.POST.get("price")
-            about=request.POST.get("about")
-            print(request.data)
-            new_pro=Products(product_name=pro_name,product_price=price,description=about)
-            print(new_pro)
-            serialize_data=ProductsSerializer(data=request.data)
-            if pro_name is None:
-                return Response({'pro_name': ['This field is required.']},
-                                status=status.HTTP_400_BAD_REQUEST)
-            if price is None:
-                return Response({'price': ['This field is required.']},
-                                status=status.HTTP_400_BAD_REQUEST)
-            if about is None:
-                return Response({'about': ['This field is required.']},
-                                status=status.HTTP_400_BAD_REQUEST)
-            if serialize_data.is_valid():
-                new_pro.save()
-                serialize_data.save()
-                return Response({"status": "success", "data": serialize_data.data}, status=status.HTTP_200_OK)
-            else:
-                return Response({"status": "error", "data": serialize_data.errors}, status=status.HTTP_400_BAD_REQUEST)
-        """
-
-
 
     def details(request,id):
-        user=request.user.id
-        product=Products.objects.get(id=id)
-        bid_count=Bidding.objects.filter(product_id=id).count()
-        all_bids=Bidding.objects.filter(product_id=id)
-        all_objects=Watchlist.objects.filter(user=user)
-        return render(request,'expand_details.html',{'product':product,'bid':bid_count,'all_bid':all_bids,'watchlist_count':all_objects.values_list('item').count(),})
+        user=request.user
+        if user.is_authenticated:
+            print(user)
+            product=Products.objects.get(id=id)
+            bid_count=Bidding.objects.filter(product_id=id).count()
+            all_bids=Bidding.objects.filter(product_id=id)
+            all_objects=Watchlist.objects.filter(user=user)
+            return render(request,'expand_details.html',{'product':product,'bid':bid_count,'all_bid':all_bids,'watchlist_count':all_objects.values_list('item').count(),'user':user})
+        else:
+            return HttpResponseRedirect('/login')
+            
 
     def bidding(request,pro_id):
         print(request.user.id)
@@ -105,9 +101,10 @@ class ProductSection:
         all_objects=Watchlist.objects.filter(user=user)
         if request.user.is_authenticated:
             pro=Products.objects.get(id=pro_id)
-            return render(request,'add_bid.html',{'product':pro,'watchlist_count':all_objects.values_list('item').count(),})
+            return render(request,'add_bid.html',{'product':pro,'watchlist_count':all_objects.values_list('item').count(),'user':user})
         else:
-            return redirect('login_user')
+            messages.info(request, "Something went worng:/")
+            return HttpResponseRedirect('/login')
 
     def add_product_bidding_save(request):
         if request.method!='POST':
@@ -132,33 +129,6 @@ class ProductSection:
                 return HttpResponseRedirect('bidding/'+pro_id)
 
 
-
-
-    def login_now(request):
-        return render(request,'login_user.html')
-
-    def login_user(request):
-        if request.method == "POST":
-            username = request.POST['username']
-            password = request.POST['password']
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('index')
-            else:
-                messages.success(request, ("There Was An Error Logging In, Try Again..."))	
-                return redirect('login_now')	
-
-
-        else:
-            return render(request, 'login_user.html', {})
-
-    def logout_user(request):
-        logout(request)
-        messages.success(request, ("You Were Logged Out!"))
-        return redirect('index')
-
-
     def register_user(request):
         return render(request,'register_user.html')
 
@@ -180,24 +150,26 @@ class ProductSection:
             return redirect('register_user')
 
     def watchlist_add(request, product_id):
-        print("heyyyyy")
-
-        item_to_save = get_object_or_404(Products, pk=product_id)
-        print(request.user)
-        if Watchlist.objects.filter(user=request.user, item=product_id).exists():
-            messages.add_message(request, messages.ERROR, "You already have it in your watchlist.")
-            return HttpResponseRedirect(reverse("index"))
-        user_list, created = Watchlist.objects.get_or_create(user=request.user)
-        user_list.item.add(item_to_save)
-        messages.add_message(request, messages.SUCCESS, "Successfully added to your watchlist")
-        return HttpResponseRedirect('/all_watchlist')
+        if request.user.is_authenticated:
+            item_to_save = get_object_or_404(Products, pk=product_id)
+            user=request.user
+            if Watchlist.objects.filter(user=request.user, item=product_id).exists():
+                messages.add_message(request, messages.ERROR, "You already have it in your watchlist.")
+                return HttpResponseRedirect(reverse("index"))
+            user_list, created = Watchlist.objects.get_or_create(user=request.user)
+            user_list.item.add(item_to_save)
+            messages.add_message(request, messages.SUCCESS, "Successfully added to your watchlist")
+            return HttpResponseRedirect('/all_watchlist',{'user':user})
+        else:
+            return HttpResponseRedirect('/login')
 
     def all_watchlist(request):
         user=request.user.id
+      
         all_objects=Watchlist.objects.filter(user=user).values_list('item')
-        print(all_objects)
+        #print(all_objects)
         all_products=Products.objects.all().values_list('id')
-        print(all_products)
+        #print(all_products)
         watchlist_item=[]
         not_listed=[]
         for i in all_products:
@@ -206,12 +178,16 @@ class ProductSection:
             else:
                 not_listed.append(Products.objects.get(id=i[0]))
         print(watchlist_item)
-        return render(request,'all_watchlist.html',{'all_items':watchlist_item,'not_listed':not_listed,'watchlist_count':all_objects.values_list('item').count(),})
+        return render(request,'all_watchlist.html',{'all_items':watchlist_item,'not_listed':not_listed,'watchlist_count':all_objects.values_list('item').count(),'user':user})
         
     def remove_from_watchlist(request,pro_id):
         user=request.user.id
         all_objects=Watchlist.objects.get(user=user).item
         product_to_remove=Products.objects.get(id=pro_id)
         all_objects.remove(product_to_remove)
-        
+        print("In products: ")
+        print(product_to_remove)
+        if all_objects.count()==0:
+            obj=Watchlist.objects.get(user=user)
+            obj.delete()
         return HttpResponseRedirect('/all_watchlist')

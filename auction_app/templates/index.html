@@ -17,8 +17,9 @@
                     <a class="nav-item nav-link" href="/all_watchlist">Watchlist<span class="badge badge-secondary mx-2">{{watchlist_count}}</span></a>
                   </div>
                 </div>
+                {% if user == None %}
                 <a href="/login_user"><button type="submit" class="btn btn-primary mx-2">Login</button></a>
-        
+                {% endif %}
                <a href="/logout_user"><button type="submit" class="btn btn-primary">Logout</button></a>
         </nav>
     </header>

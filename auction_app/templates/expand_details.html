@@ -17,8 +17,9 @@
             <a class="nav-item nav-link" href="/all_watchlist">Watchlist<span class="badge badge-secondary mx-2">{{watchlist_count}}</span></a>
           </div>
         </div>
-        <a href="/login_user"><button type="submit" class="btn btn-primary mx-2">Login</button></a>
-
+        {% if user == None %}
+         <a href="/login_user"><button type="submit" class="btn btn-primary mx-2">Login</button></a>
+        {% endif %}
        <a href="/logout_user"><button type="submit" class="btn btn-primary">Logout</button></a>
 </nav>
     </header>
@@ -50,17 +51,18 @@
                         
                     </div>
                     <div class="card-body table-responsive p-0">
+                      <h2>List of Bids: </h2>
                         <table class="table table-hover text-nowrap">
                           <thead>
                             <tr>
-                              <th>Made by (Users)</th>
+                              <th>BID Made by (Users)</th>
                               <th>New Price</th>
                             </tr>
                           </thead>
                           <tbody>
                             {% for bid in all_bid %}
                           <tr>
-                            <td>{{ bid.id }}</td>
+                            <td>{{ user.username }}</td>
                             <td>{{ bid.new_price }}</td>
         
                            <!-- <td><a href="/edit_course/{{course.id }}" class="btn btn-outline-success">Edit</a> </td>

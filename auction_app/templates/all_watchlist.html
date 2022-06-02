@@ -19,8 +19,9 @@
             </div>
             {% if user == None %}
                 <a href="/login_user"><button type="submit" class="btn btn-primary mx-2">Login</button></a>
-            {% endif %}
+            {% else %}
            <a href="/logout_user"><button type="submit" class="btn btn-primary">Logout</button></a>
+           {% endif %}
     </nav>
     </header>
     

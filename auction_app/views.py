@@ -165,21 +165,22 @@ class ProductSection:
 
     def all_watchlist(request):
         user=request.user.id
-      
-        all_objects=Watchlist.objects.filter(user=user).values_list('item')
-        #print(all_objects)
-        all_products=Products.objects.all().values_list('id')
-        #print(all_products)
-        watchlist_item=[]
-        not_listed=[]
-        for i in all_products:
-            if i in all_objects:
-                watchlist_item.append(Products.objects.get(id=i[0]))
-            else:
-                not_listed.append(Products.objects.get(id=i[0]))
-        print(watchlist_item)
-        return render(request,'all_watchlist.html',{'all_items':watchlist_item,'not_listed':not_listed,'watchlist_count':all_objects.values_list('item').count(),'user':user})
-        
+        if request.user.is_authenticated:
+            all_objects=Watchlist.objects.filter(user=user).values_list('item')
+            #print(all_objects)
+            all_products=Products.objects.all().values_list('id')
+            #print(all_products)
+            watchlist_item=[]
+            not_listed=[]
+            for i in all_products:
+                if i in all_objects:
+                    watchlist_item.append(Products.objects.get(id=i[0]))
+                else:
+                    not_listed.append(Products.objects.get(id=i[0]))
+            print(watchlist_item)
+            return render(request,'all_watchlist.html',{'all_items':watchlist_item,'not_listed':not_listed,'watchlist_count':all_objects.values_list('item').count(),'user':user})
+        else:
+            return HttpResponseRedirect('/login')
     def remove_from_watchlist(request,pro_id):
         user=request.user.id
         all_objects=Watchlist.objects.get(user=user).item
